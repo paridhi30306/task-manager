@@ -6,11 +6,14 @@ import TaskList from "./components/TaskList";
 
 
 function App() {
-  const[task,setTask]=useState("");
-  const [tasks, setTasks] = useState(() => {
+const [task, setTask] = useState("");
+const [tasks, setTasks] = useState(() => {
   const savedTasks = localStorage.getItem("tasks");
   return savedTasks ? JSON.parse(savedTasks) : [];
 });
+
+const [search, setSearch] = useState("");
+const [filter, setFilter] = useState("all");
 
    const [editIndex, setEditIndex] = useState(null);
    const editTask = (index) => {
@@ -57,9 +60,55 @@ const toggleComplete = (index) => {
 
   setTasks(updatedTasks);
 };  
+const filteredTasks = tasks.filter((item) => {
+  const matchesSearch = item.text
+    .toLowerCase()
+    .includes(search.toLowerCase());
+
+  const matchesFilter =
+    filter === "all" ||
+    (filter === "completed" && item.completed) ||
+    (filter === "pending" && !item.completed);
+
+  return matchesSearch && matchesFilter;
+});
+const totalTasks = tasks.length;
+
+const completedTasks = tasks.filter(
+  (item) => item.completed
+).length;
+
+const pendingTasks = totalTasks - completedTasks;
 return (
   <div className="container">
     <Header />
+
+    <input
+  type="text"
+  placeholder="Search tasks..."
+  value={search}
+  onChange={(e) => setSearch(e.target.value)}
+/>
+
+<div className="filter-buttons">
+  <button onClick={() => setFilter("all")}>
+    All
+  </button>
+
+  <button onClick={() => setFilter("completed")}>
+    Completed
+  </button>
+
+  <button onClick={() => setFilter("pending")}>
+    Pending
+  </button>
+</div>
+
+<div className="stats">
+  <p>Total: {totalTasks}</p>
+  <p>Completed: {completedTasks}</p>
+  <p>Pending: {pendingTasks}</p>
+</div>
 
    <TaskInput
   task={task}
@@ -68,7 +117,7 @@ return (
 />
 
   <TaskList
-  tasks={tasks}
+  tasks={filteredTasks}
   toggleComplete={toggleComplete}
   deleteTask={deleteTask}
   editTask={editTask}
